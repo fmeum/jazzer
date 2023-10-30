@@ -30,6 +30,7 @@ public final class LangMutators {
         new IntegralMutatorFactory(),
         new ByteArrayMutatorFactory(),
         new StringMutatorFactory(),
-        new EnumMutatorFactory());
+        new EnumMutatorFactory(),
+        new RecordMutatorFactory());
   }
 }

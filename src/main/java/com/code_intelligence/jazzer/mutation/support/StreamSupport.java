@@ -16,26 +16,15 @@
 
 package com.code_intelligence.jazzer.mutation.support;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.AbstractMap.SimpleEntry;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class StreamSupport {
   private StreamSupport() {}
-
-  public static boolean[] toBooleanArray(Stream<Boolean> stream) {
-    List<Boolean> list = stream.collect(toList());
-    boolean[] array = new boolean[list.size()];
-    for (int i = 0; i < list.size(); i++) {
-      array[i] = list.get(i);
-    }
-    return array;
-  }
 
   /**
    * @return the first present value, otherwise {@link Optional#empty()}
@@ -64,6 +53,14 @@ public final class StreamSupport {
    */
   public static <T> Stream<T> getOrEmpty(Optional<T> optional) {
     return optional.isPresent() ? Stream.of(optional.get()) : Stream.empty();
+  }
+
+  public static <T> Optional<T> getOrEmpty(Supplier<T> value) {
+    try {
+      return Optional.of(value.get());
+    } catch (Exception e) {
+      return Optional.empty();
+    }
   }
 
   public static <K, V> SimpleEntry<K, V> entry(K key, V value) {

@@ -45,7 +45,6 @@ public interface Sizeable {
 
   static boolean getFixedSize(Sizeable sizeable) {
     Set<Object> seen = newSetFromMap(new IdentityHashMap<>());
-    seen.add(sizeable);
     return sizeable.hasFixedSize(child -> !seen.add(requireNonNull(child)));
   }
 }
