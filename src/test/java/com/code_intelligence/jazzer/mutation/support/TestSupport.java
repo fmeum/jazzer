@@ -25,6 +25,7 @@ import com.code_intelligence.jazzer.mutation.api.Debuggable;
 import com.code_intelligence.jazzer.mutation.api.InPlaceMutator;
 import com.code_intelligence.jazzer.mutation.api.PseudoRandom;
 import com.code_intelligence.jazzer.mutation.api.SerializingMutator;
+import com.code_intelligence.jazzer.mutation.api.Sizeable;
 import com.code_intelligence.jazzer.mutation.engine.SeededPseudoRandom;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.MustBeClosed;
@@ -192,7 +193,7 @@ public final class TestSupport {
     }
 
     @Override
-    public boolean hasFixedSize() {
+    public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
       // This value is ignored by MockPseudoRandom.
       return false;
     }
@@ -222,7 +223,7 @@ public final class TestSupport {
     }
 
     @Override
-    public boolean hasFixedSize() {
+    public boolean hasFixedSizeInt(Predicate<Sizeable> isInCycle) {
       // This value is ignored by MockPseudoRandom.
       return false;
     }

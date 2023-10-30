@@ -81,6 +81,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -336,11 +337,12 @@ public final class BuilderMutatorFactory extends MutatorFactory {
             .boxed()
             .collect(toMap(i -> getTypeUrl(getDefaultInstance(anySource.value()[i])), identity()));
 
-    boolean hasFixedSize =
-        stream(anySource.value())
-            .map(TypeLibrary::getDefaultInstance)
-            .map(MessageOrBuilder::getDescriptorForType)
-            .allMatch(BuilderMutatorFactory::hasFixedSize);
+    Supplier<Boolean> hasFixedSize =
+        () ->
+            stream(anySource.value())
+                .map(TypeLibrary::getDefaultInstance)
+                .map(MessageOrBuilder::getDescriptorForType)
+                .allMatch(BuilderMutatorFactory::hasFixedSize);
     return assemble(
         mutator -> internedMutators.put(new CacheKey(Any.getDescriptor(), anySource), mutator),
         Any.getDefaultInstance()::toBuilder,
@@ -475,7 +477,7 @@ public final class BuilderMutatorFactory extends MutatorFactory {
                                     : new Annotation[] {anySource},
                                 factory))
                     .toArray(InPlaceMutator[]::new)),
-        hasFixedSize(descriptor));
+        () -> hasFixedSize(descriptor));
   }
 
   private static boolean hasFixedSize(Descriptor descriptor) {

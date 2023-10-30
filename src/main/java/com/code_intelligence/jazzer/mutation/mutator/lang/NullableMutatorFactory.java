@@ -24,6 +24,7 @@ import com.code_intelligence.jazzer.mutation.api.Debuggable;
 import com.code_intelligence.jazzer.mutation.api.MutatorFactory;
 import com.code_intelligence.jazzer.mutation.api.PseudoRandom;
 import com.code_intelligence.jazzer.mutation.api.SerializingMutator;
+import com.code_intelligence.jazzer.mutation.api.Sizeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -110,8 +111,8 @@ final class NullableMutatorFactory extends MutatorFactory {
     }
 
     @Override
-    public boolean hasFixedSize() {
-      return mutator.hasFixedSize();
+    public boolean hasFixedSizeInt(Predicate<Sizeable> isInCycle) {
+      return mutator.hasFixedSize(isInCycle);
     }
 
     @Override

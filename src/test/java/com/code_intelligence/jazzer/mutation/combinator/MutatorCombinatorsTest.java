@@ -40,6 +40,7 @@ import com.code_intelligence.jazzer.mutation.api.PseudoRandom;
 import com.code_intelligence.jazzer.mutation.api.Serializer;
 import com.code_intelligence.jazzer.mutation.api.SerializingInPlaceMutator;
 import com.code_intelligence.jazzer.mutation.api.SerializingMutator;
+import com.code_intelligence.jazzer.mutation.api.Sizeable;
 import com.code_intelligence.jazzer.mutation.support.TestSupport.MockPseudoRandom;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -125,7 +126,7 @@ class MutatorCombinatorsTest {
                   List<Integer> reference, List<Integer> otherReference, PseudoRandom prng) {}
 
               @Override
-              public boolean hasFixedSize() {
+              public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
                 return false;
               }
 
@@ -197,7 +198,7 @@ class MutatorCombinatorsTest {
                   List<Integer> reference, List<Integer> otherReference, PseudoRandom prng) {}
 
               @Override
-              public boolean hasFixedSize() {
+              public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
                 return false;
               }
 
@@ -295,7 +296,7 @@ class MutatorCombinatorsTest {
                   List<Integer> reference, List<Integer> otherReference, PseudoRandom prng) {}
 
               @Override
-              public boolean hasFixedSize() {
+              public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
                 return true;
               }
 
@@ -324,7 +325,7 @@ class MutatorCombinatorsTest {
               }
             },
             () -> combine(valueMutator, listMutator),
-            false);
+            () -> false);
 
     assertThat(mutator.toString()).isEqualTo("{Foo.Integer, Foo via List<Integer>}");
 
@@ -382,7 +383,7 @@ class MutatorCombinatorsTest {
               }
             },
             () -> combine(valueMutator, listMutator),
-            false);
+            () -> false);
 
     Foo foo = new Foo(0, singletonList(0));
     Foo fooOther = new Foo(1, singletonList(1));

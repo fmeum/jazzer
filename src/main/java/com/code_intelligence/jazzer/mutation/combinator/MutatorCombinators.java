@@ -28,6 +28,7 @@ import com.code_intelligence.jazzer.mutation.api.PseudoRandom;
 import com.code_intelligence.jazzer.mutation.api.Serializer;
 import com.code_intelligence.jazzer.mutation.api.SerializingInPlaceMutator;
 import com.code_intelligence.jazzer.mutation.api.SerializingMutator;
+import com.code_intelligence.jazzer.mutation.api.Sizeable;
 import com.google.errorprone.annotations.ImmutableTypeParameter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -88,8 +89,8 @@ public final class MutatorCombinators {
       }
 
       @Override
-      public boolean hasFixedSize() {
-        return mutator.hasFixedSize();
+      public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
+        return !isInCycle.test(this) && mutator.hasFixedSize(isInCycle);
       }
 
       @Override
@@ -127,8 +128,8 @@ public final class MutatorCombinators {
       }
 
       @Override
-      public boolean hasFixedSize() {
-        return mutator.hasFixedSize();
+      public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
+        return !isInCycle.test(this) && mutator.hasFixedSize(isInCycle);
       }
 
       @Override
@@ -166,7 +167,7 @@ public final class MutatorCombinators {
         public void crossOverInPlace(T reference, T otherReference, PseudoRandom prng) {}
 
         @Override
-        public boolean hasFixedSize() {
+        public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
           return true;
         }
 
@@ -182,7 +183,6 @@ public final class MutatorCombinators {
       };
     }
 
-    boolean hasFixedSize = stream(partialMutators).allMatch(InPlaceMutator::hasFixedSize);
     final InPlaceMutator<T>[] mutators = Arrays.copyOf(partialMutators, partialMutators.length);
     return new InPlaceMutator<T>() {
       @Override
@@ -205,8 +205,9 @@ public final class MutatorCombinators {
       }
 
       @Override
-      public boolean hasFixedSize() {
-        return hasFixedSize;
+      public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
+        return !isInCycle.test(this)
+            && stream(partialMutators).allMatch(mutator -> mutator.hasFixedSize(isInCycle));
       }
 
       @Override
@@ -303,7 +304,7 @@ public final class MutatorCombinators {
       }
 
       @Override
-      public boolean hasFixedSize() {
+      public boolean hasFixedSizeInt(Predicate<Sizeable> isInCycle) {
         return true;
       }
 
@@ -335,7 +336,6 @@ public final class MutatorCombinators {
   @SafeVarargs
   public static <T> InPlaceMutator<T> mutateSumInPlace(
       ToIntFunction<T> getState, InPlaceMutator<T>... perStateMutators) {
-    boolean hasFixedSize = stream(perStateMutators).allMatch(InPlaceMutator::hasFixedSize);
     final InPlaceMutator<T>[] mutators = Arrays.copyOf(perStateMutators, perStateMutators.length);
     return new InPlaceMutator<T>() {
       @Override
@@ -377,8 +377,9 @@ public final class MutatorCombinators {
       }
 
       @Override
-      public boolean hasFixedSize() {
-        return hasFixedSize;
+      public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
+        return !isInCycle.test(this)
+            && stream(perStateMutators).allMatch(mutator -> mutator.hasFixedSize(isInCycle));
       }
 
       @Override
@@ -417,8 +418,8 @@ public final class MutatorCombinators {
       }
 
       @Override
-      public boolean hasFixedSize() {
-        return mutator.hasFixedSize();
+      public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
+        return !isInCycle.test(this) && mutator.hasFixedSize(isInCycle);
       }
     };
   }
@@ -465,7 +466,7 @@ public final class MutatorCombinators {
       }
 
       @Override
-      public boolean hasFixedSize() {
+      public boolean hasFixedSizeInt(Predicate<Sizeable> isInCycle) {
         return true;
       }
     };
@@ -482,15 +483,15 @@ public final class MutatorCombinators {
    * @param serializer implementation of the {@link Serializer<T>} part
    * @param lazyMutator supplies the implementation of the {@link InPlaceMutator<T>} part. This is
    *     guaranteed to be invoked exactly once and only after {@code registerSelf}.
-   * @param hasFixedSize the value to return from the resulting mutators {@link
-   *     InPlaceMutator#hasFixedSize()}
+   * @param hasFixedSize supplies the value to return from the resulting mutators {@link
+   *     Sizeable#hasFixedSize(Predicate)}
    */
   public static <T> SerializingInPlaceMutator<T> assemble(
       Consumer<SerializingInPlaceMutator<T>> registerSelf,
       Supplier<T> makeDefaultInstance,
       Serializer<T> serializer,
       Supplier<InPlaceMutator<T>> lazyMutator,
-      boolean hasFixedSize) {
+      Supplier<Boolean> hasFixedSize) {
     return new DelegatingSerializingInPlaceMutator<>(
         registerSelf, makeDefaultInstance, serializer, lazyMutator, hasFixedSize);
   }
@@ -499,21 +500,20 @@ public final class MutatorCombinators {
     private final Supplier<T> makeDefaultInstance;
     private final Serializer<T> serializer;
     private final InPlaceMutator<T> mutator;
-    private final boolean hasFixedSize;
+    private final Supplier<Boolean> hasFixedSize;
 
     private DelegatingSerializingInPlaceMutator(
         Consumer<SerializingInPlaceMutator<T>> registerSelf,
         Supplier<T> makeDefaultInstance,
         Serializer<T> serializer,
         Supplier<InPlaceMutator<T>> lazyMutator,
-        boolean hasFixedSize) {
+        Supplier<Boolean> hasFixedSize) {
       requireNonNull(makeDefaultInstance);
       requireNonNull(serializer);
 
       registerSelf.accept(this);
       this.makeDefaultInstance = makeDefaultInstance;
       this.serializer = serializer;
-      // Set before invoking the supplier as that can result in calls to hasFixedSize().
       this.hasFixedSize = hasFixedSize;
       this.mutator = lazyMutator.get();
     }
@@ -534,10 +534,8 @@ public final class MutatorCombinators {
     }
 
     @Override
-    public boolean hasFixedSize() {
-      // This uses a fixed value rather than calling mutator.hasFixedSize() as this method is called
-      // before the constructor has finished, which is necessary in the case of a cycle.
-      return hasFixedSize;
+    public boolean hasFixedSizeInt(Predicate<Sizeable> isInCycle) {
+      return hasFixedSize.get();
     }
 
     @Override

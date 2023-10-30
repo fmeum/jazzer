@@ -24,6 +24,7 @@ import com.code_intelligence.jazzer.mutation.api.Debuggable;
 import com.code_intelligence.jazzer.mutation.api.MutatorFactory;
 import com.code_intelligence.jazzer.mutation.api.PseudoRandom;
 import com.code_intelligence.jazzer.mutation.api.SerializingMutator;
+import com.code_intelligence.jazzer.mutation.api.Sizeable;
 import com.code_intelligence.jazzer.mutation.mutator.libfuzzer.LibFuzzerMutate;
 import com.google.errorprone.annotations.ForOverride;
 import java.io.DataInputStream;
@@ -391,7 +392,7 @@ final class IntegralMutatorFactory extends MutatorFactory {
     }
 
     @Override
-    public boolean hasFixedSize() {
+    public boolean hasFixedSizeInt(Predicate<Sizeable> isInCycle) {
       return true;
     }
 

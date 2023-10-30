@@ -40,7 +40,7 @@ import com.google.errorprone.annotations.CheckReturnValue;
  *
  * @param <T> the type this mutator operates on
  */
-public interface ValueMutator<T> extends Debuggable {
+public interface ValueMutator<T> extends Debuggable, Sizeable {
 
   /**
    * Implementations
@@ -80,13 +80,4 @@ public interface ValueMutator<T> extends Debuggable {
    */
   @CheckReturnValue
   T crossOver(T value, T otherValue, PseudoRandom prng);
-
-  /**
-   * Whether the type {@code T} mutated by this mutator has a fixed size in memory. This information
-   * can be used by mutators for collections of {@code T}s.
-   *
-   * <p>Examples of types with fixed size include primitive types, enums, and classes with only
-   * primitive types and enums as members.
-   */
-  boolean hasFixedSize();
 }

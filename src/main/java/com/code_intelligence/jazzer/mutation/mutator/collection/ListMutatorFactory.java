@@ -35,6 +35,7 @@ import com.code_intelligence.jazzer.mutation.api.MutatorFactory;
 import com.code_intelligence.jazzer.mutation.api.PseudoRandom;
 import com.code_intelligence.jazzer.mutation.api.SerializingInPlaceMutator;
 import com.code_intelligence.jazzer.mutation.api.SerializingMutator;
+import com.code_intelligence.jazzer.mutation.api.Sizeable;
 import com.code_intelligence.jazzer.mutation.support.RandomSupport;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -147,7 +148,7 @@ final class ListMutatorFactory extends MutatorFactory {
     }
 
     @Override
-    public boolean hasFixedSize() {
+    public boolean hasFixedSizeInt(Predicate<Sizeable> isInCycle) {
       return false;
     }
 

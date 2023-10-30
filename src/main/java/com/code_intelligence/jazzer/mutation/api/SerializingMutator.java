@@ -17,6 +17,7 @@
 package com.code_intelligence.jazzer.mutation.api;
 
 import com.google.errorprone.annotations.DoNotMock;
+import java.util.function.Predicate;
 
 /**
  * Combines a {@link ValueMutator} with a {@link Serializer} for objects of type {@code T}.
@@ -28,6 +29,26 @@ import com.google.errorprone.annotations.DoNotMock;
  */
 @DoNotMock("Use TestSupport#mockMutator instead")
 public abstract class SerializingMutator<T> implements Serializer<T>, ValueMutator<T> {
+
+  private static final int NOT_COMPUTED = -1;
+  private static final int UNBOUNDED = 0;
+  private static final int BOUNDED = 1;
+
+  // Cache the hasFixedSize result. -1 indicates that the result has not been computed yet.
+  private int fixedSize = NOT_COMPUTED;
+
+  @Override
+  public boolean hasFixedSize(Predicate<Sizeable> isInCycle) {
+    int f = fixedSize;
+    if (f == NOT_COMPUTED) {
+      f = (!isInCycle.test(this) && hasFixedSizeInt(isInCycle)) ? BOUNDED : UNBOUNDED;
+      fixedSize = f;
+    }
+    return f == BOUNDED;
+  }
+
+  protected abstract boolean hasFixedSizeInt(Predicate<Sizeable> isInCycle);
+
   @Override
   public final String toString() {
     return Debuggable.getDebugString(this);
