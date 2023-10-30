@@ -21,7 +21,7 @@ This will speed up incremental builds and tests, especially when switching branc
 
 Since a disk cache can be shared across Bazel projects, it is recommended to enable it by creating a file called `.bazelrc` in your home directory with the following contents:
 ```
-common --disk_cache=$HOME/.cache/bazel-disk
+common --disk_cache=<ABSOLUTE_HOME_PATH>/.cache/bazel-disk
 ```
 
 Bazel currently doesn't remove old entries from the disk cache automatically, so you may want to do this manually from time to time (see https://github.com/bazelbuild/bazel/issues/5139#issuecomment-943534948).
