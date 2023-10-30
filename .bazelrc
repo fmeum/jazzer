@@ -35,6 +35,10 @@ build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 # Speed up Java compilation by removing indirect deps from the compile classpath.
 build --experimental_java_classpath=bazel
+# Use Java 17 to execute tests, as they may rely on newer language features.
+test --javacopt=-target --javacopt=17
+test --java_language_version=17
+test --tool_java_language_version=17
 
 # Android
 build --incompatible_enable_android_toolchain_resolution
